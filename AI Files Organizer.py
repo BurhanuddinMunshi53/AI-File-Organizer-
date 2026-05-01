@@ -1,164 +1,209 @@
 import os
 import shutil
+import time
+import sys
+import random
+import zipfile
+import hashlib
+import platform
+from datetime import datetime
 
 FILE_TYPES = {
-    "Images": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".bmp", ".svg", ".raw", ".cr2", ".nef", ".arw", ".dng", ".tiff", ".psd", ".ai", ".eps", ".avif", ".jif", ".jfif"],
+    "Images": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".bmp", ".svg", ".raw", ".cr2", ".nef", ".arw", ".dng", ".tiff", ".psd", ".ai", ".eps", ".avif", ".jif", ".jfif", ".ico"],
     "Documents": [".pdf", ".docx", ".doc", ".txt", ".xlsx", ".xls", ".pptx", ".ppt", ".csv", ".epub", ".md", ".rtf", ".odt", ".pages", ".numbers", ".key", ".tex", ".wpd"],
     "Videos": [".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v", ".3gp", ".mpg", ".mpeg", ".vob", ".ogv", ".ts", ".m2ts", ".rmvb"],
     "Audio": [".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".opus", ".amr", ".mid", ".midi", ".wma", ".aiff", ".m4b", ".m4p", ".mka"],
     "Archives": [".zip", ".rar", ".7z", ".tar", ".gz", ".iso", ".dmg", ".pkg", ".deb", ".rpm", ".xz", ".bz2", ".cbz", ".cbr", ".wim"],
-    "Apps_Code": [".apk", ".exe", ".msi", ".py", ".js", ".html", ".json", ".css", ".cpp", ".c", ".h", ".java", ".sh", ".bat", ".php", ".rb", ".go", ".rs", ".swift", ".ts", ".kt", ".dart", ".lua", ".pl"],
-    "Data_Scientific": [".sql", ".db", ".sqlite", ".xml", ".jsonl", ".parquet", ".avro", ".dat", ".sav", ".hdf5", ".mat", ".cdf", ".nc"],
-    "Design_3D": [".dwg", ".dxf", ".obj", ".stl", ".blend", ".3ds", ".c4d", ".ma", ".mb", ".fig", ".xd", ".skp", ".step", ".iges"],
-    "Game_Assets": [".unitypackage", ".uasset", ".umap", ".tga", ".dds", ".pck", ".pak", ".assets"],
-    "Virtual_Machines": [".vmdk", ".vdi", ".ova", ".ovf", ".vhd", ".vhdx", ".qcow2"],
-    "Fonts": [".ttf", ".otf", ".woff", ".woff2", ".eot"],
-    "System_Config": [".log", ".bak", ".tmp", ".ini", ".conf", ".yaml", ".yml", ".env", ".toml", ".prop", ".properties", ".plist", ".reg"]
+    "Dev Stack": [".apk", ".exe", ".msi", ".py", ".js", ".html", ".json", ".css", ".cpp", ".c", ".h", ".java", ".sh", ".bat", ".php", ".rb", ".go", ".rs", ".swift", ".ts", ".kt", ".dart", ".lua", ".pl"],
+    "AI Neural": [".onnx", ".tflite", ".pb", ".h5", ".pth", ".weights", ".gguf", ".ckpt", ".safetensors", ".bin", ".model"],
+    "Data Sci": [".sql", ".db", ".sqlite", ".xml", ".jsonl", ".parquet", ".avro", ".dat", ".sav", ".hdf5", ".mat", ".cdf", ".nc"],
+    "Design CAD": [".dwg", ".dxf", ".obj", ".stl", ".blend", ".3ds", ".c4d", ".ma", ".mb", ".fig", ".xd", ".skp", ".step", ".iges"],
+    "Game Dev": [".unitypackage", ".uasset", ".umap", ".tga", ".dds", ".pck", ".pak", ".assets", ".bundle"],
+    "VM Cloud": [".vmdk", ".vdi", ".ova", ".ovf", ".vhd", ".vhdx", ".qcow2"],
+    "Sys Config": [".log", ".bak", ".tmp", ".ini", ".conf", ".env", ".toml", ".prop", ".properties", ".plist", ".reg"]
 }
 
-C_MAIN = "\033[96m"  # Cyan
-C_SUCC = "\033[92m"  # Green
-C_WARN = "\033[93m"  # Yellow
-C_DANG = "\033[91m"  # Red
-BOLD, RESET = "\033[1m", "\033[0m"
+C_CYAN = "\033[38;5;51m"
+C_GREY = "\033[38;5;244m"
+C_BOLD = "\033[1m"
+C_RESET = "\033[0m"
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def get_base():
-    return "/sdcard" if os.path.exists("/sdcard") else os.path.expanduser("~")
+def neural_anim(label="SYSTEM LOADING"):
+    for _ in range(3):
+        for opac in [C_GREY, C_CYAN, C_BOLD + C_CYAN]:
+            sys.stdout.write(f"\r {opac}◈ {label}...{C_RESET}")
+            sys.stdout.flush()
+            time.sleep(0.06)
+    print()
 
-def targeted_delete(path):
-    """Specific file browser and deletion logic."""
-    while True:
-        clear()
-        try:
-            files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        except Exception as e:
-            print(f"{C_DANG}Access Error: {e}{RESET}")
-            input("Press Enter...")
-            break
+def jarvis_type(text, color=C_CYAN, speed=0.005):
+    for char in text:
+        sys.stdout.write(f"{color}{char}{C_RESET}")
+        sys.stdout.flush()
+        time.sleep(speed)
+    print()
 
-        print(f"{C_DANG}{BOLD}--- TARGETED DELETION ---{RESET}")
-        print(f"Path: {path}\n")
-        
-        if not files:
-            print(f"{C_WARN}Directory is empty.{RESET}")
-            input("\nPress Enter to return...")
-            break
+def progress_tactical(label, total=100, speed=0.006):
+    for i in range(total + 1):
+        bar = "█" * (i // 4) + "░" * (25 - (i // 4))
+        sys.stdout.write(f"\r {C_CYAN}{label:<20} {C_GREY}▕{C_CYAN}{bar}{C_GREY}▏ {i}%{C_RESET}")
+        sys.stdout.flush()
+        time.sleep(speed)
+    print()
 
-       
-        for i, f in enumerate(files, 1):
-            print(f" {i:03d} | {f}")
-        
-        print(f"\n{BOLD}[#] Delete File | [A] Delete ALL | [0] Back{RESET}")
-        choice = input(f"{C_MAIN}Selection: {RESET}").strip().upper()
+def draw_prime_hud():
+    clear()
+    t = datetime.now().strftime("%H:%M:%S")
+    print(f"{C_CYAN}┏" + "━"*72 + "┓")
+    print(f"┃ {C_BOLD}AETHER OS v19.0{C_RESET}{C_CYAN}               {t} ┃")
+    print(f"┣" + "━"*72 + "┫")
+    print(f"┃ {C_GREY}UI: {C_CYAN}SENTINEL {C_GREY}| CORE: {C_CYAN}JARVIS HYPERION {C_GREY}| SECURITY: {C_CYAN}ULTRA-PURE{C_CYAN}    ┃")
+    print(f"┗" + "━"*72 + f"┛{C_RESET}")
 
-        if choice == '0': break
-        elif choice == 'A':
-            confirm = input(f"{C_DANG}Wipe all {len(files)} files? (y/n): {RESET}").lower()
-            if confirm == 'y':
-                for f in files: 
-                    try: os.remove(os.path.join(path, f))
-                    except: pass
-                print(f"{C_SUCC}Purge complete.{RESET}")
-                input("...")
-                break
-        elif choice.isdigit() and 0 < int(choice) <= len(files):
-            target = files[int(choice)-1]
-            try:
-                os.remove(os.path.join(path, target))
-                print(f"{C_SUCC}Deleted: {target}{RESET}")
-            except Exception as e:
-                print(f"{C_DANG}Error: {e}{RESET}")
-                input("...")
-        else:
-            print(f"{C_DANG}Invalid entry.{RESET}")
+def sector_select(root):
+    draw_prime_hud()
+    nodes = {item.lower(): os.path.join(root, item) for item in os.listdir(root) if os.path.isdir(os.path.join(root, item))}
+    print(f" {C_CYAN}DETECTED DATA SECTORS:{C_RESET}")
+    keys = sorted(nodes.keys())
+    for i in range(0, len(keys), 2):
+        row = keys[i:i+2]
+        display = "".join([f" {C_CYAN}◆ {C_GREY}{k[:30].replace('_', ' '):<32}{C_RESET}" for k in row])
+        print(display)
+    target = input(f"\n {C_CYAN}ENGAGE SECTOR NAME>> {C_RESET}").lower().strip().replace(" ", "_")
+    return nodes.get(target)
 
-def folder_operations(target_path):
-    """Sub-menu for a specific folder."""
-    while True:
-        clear()
-        name = os.path.basename(target_path)
-        print(f"{C_MAIN}{BOLD}╔" + "═"*44 + "╗")
-        print(f"║ {name[:42]:^42} ║")
-        print(f"╚" + "═"*44 + "╝{RESET}")
-        print(f"[{C_SUCC}1{RESET}] ORGANIZE (Sort by {len(FILE_TYPES)} categories)")
-        print(f"[{C_DANG}2{RESET}] DELETE (Specific Selection)")
-        print(f"[0] BACK")
-        
-        cmd = input(f"\n{BOLD}Action: {RESET}")
-        if cmd == '1':
-            moved = 0
-            for filename in os.listdir(target_path):
-                file_path = os.path.join(target_path, filename)
-                if os.path.isfile(file_path):
-                    ext = os.path.splitext(filename)[1].lower()
-                    for folder, extensions in FILE_TYPES.items():
-                        if ext in extensions:
-                            dest = os.path.join(target_path, folder)
-                            os.makedirs(dest, exist_ok=True)
-                            shutil.move(file_path, os.path.join(dest, filename))
-                            moved += 1
-            print(f"\n{C_SUCC}Complete: {moved} files sorted into system-optimized categories.{RESET}")
-            input("Press Enter...")
-        elif cmd == '2': targeted_delete(target_path)
-        elif cmd == '0': break
+def op_scan_entire_system(root):
+    draw_prime_hud()
+    progress_tactical("MAPPING MAIN SECTORS", 100, 0.01)
+    print(f"\n {C_CYAN}MAIN SYSTEM FOLDERS DETECTED:{C_RESET}")
+    main_folders = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+    for i in range(0, len(main_folders), 2):
+        row = main_folders[i:i+2]
+        display = "".join([f" {C_GREY}▚ {C_CYAN}{f[:30].replace('_', ' '):<34}{C_RESET}" for f in row])
+        print(display)
+    input()
 
 def main():
-    root = get_base()
+    clear()
+    # BOOT ANIMATION REPLACED AS REQUESTED
+    progress_tactical("MAPPING MAIN SECTORS", 100, 0.015)
+    time.sleep(0.5)
+    
+    root = "/sdcard" if os.path.exists("/sdcard") else os.path.expanduser("~")
+    
     while True:
-        clear()
-        print(f"{C_MAIN}{BOLD}Aether Engine v6.0 {RESET}")
-        print(f"Directory: {root}")
-        print("─" * 46)
-        print("1. Scan Entire System")
-        print("2. Search Via Name ")
-        print("Q. Quit")
+        draw_prime_hud()
+        print(f" {C_CYAN}01. SCAN ENTIRE SYSTEM       07. MASS IDENTITY REWRITE{C_RESET}")
+        print(f" {C_CYAN}02. NEURAL CATEGORY SORT     08. METADATA RECONNAISSANCE{C_RESET}")
+        print(f" {C_CYAN}03. SECURE NODE VAPORIZER    09. DATA INTEGRITY CHECK{C_RESET}")
+        print(f" {C_CYAN}04. DEEP SEARCH FREQUENCY    10. SECTOR CLONE REDUNDANCY{C_RESET}")
+        print(f" {C_CYAN}05. ENCRYPT DATA SECTOR      11. PURGE EMPTY HIERARCHIES{C_RESET}")
+        print(f" {C_CYAN}06. DECRYPT DATA SECTOR      12. SYSTEM VOLUME DIAGNOSTICS{C_RESET}")
+        print(f" {C_CYAN}━" * 72 + f"{C_RESET}")
+        print(f" {C_GREY}ACTIVE ROOT: {root.replace('_', ' ')}           {C_CYAN}[XX] TERMINATE{C_RESET}")
         
-        choice = input(f"\n{BOLD}Command: {RESET}").lower()
-        if choice == 'q':
-            print("Shutting Down...Have a clean digital desk") 
-            break
-
-        if choice == '1':
-            print(f"{C_WARN}Indexing storage...{RESET}")
-            found = {}
-            for r, d, _ in os.walk(root):
-                for folder in d:
-                    if not folder.startswith('.'):
-                        found[folder.lower()] = os.path.join(r, folder)
-            
+        cmd = input(f"\n {C_CYAN}STARK@AETHER:~$ {C_RESET}").strip().upper()
+        
+        if cmd == 'XX':
             clear()
-            print(f"{C_MAIN}{BOLD}--- STORAGE FOLDER MAP ---{RESET}")
-            # Sorted Vertical List
-            for name in sorted(found.keys()):
-                print(f"  • {name}")
-            
-            print(f"\n{BOLD}Indexed: {len(found)} Folders{RESET}")
-            name_input = input(f"\n{BOLD}Select Folder Name: {RESET}").lower().strip()
-            if name_input in found: folder_operations(found[name_input])
-            else: input(f"{C_DANG}Target not found. Enter to return...{RESET}")
-
-        elif choice == '2':
-            query = input(f"{BOLD}Search Target: {RESET}").lower().strip()
-            matches = []
-            print(f"{C_WARN}Searching for '{query}'...{RESET}")
-            for r, d, _ in os.walk(root):
-                if query in [f.lower() for f in d]:
-                    matches.append(os.path.join(r, query))
-            
-            if not matches:
-                input(f"{C_DANG}No match found for '{query}'.{RESET}")
-            elif len(matches) == 1:
-                folder_operations(matches[0])
-            else:
-                clear()
-                print(f"{C_MAIN}Multiple paths detected for '{query}':{RESET}")
-                for i, p in enumerate(matches, 1): print(f"{i}. {p}")
-                idx = input("\nSelect Index: ")
-                if idx.isdigit() and 0 < int(idx) <= len(matches):
-                    folder_operations(matches[int(idx)-1])
+            neural_anim("DE-INITIALIZING NEURAL LINK")
+            print(f"\n{C_CYAN}┏" + "━"*40 + "┓")
+            print(f"┃ {C_BOLD}SESSION TERMINATED. GOODBYE, SIR.      {C_RESET}{C_CYAN}┃")
+            print(f"┗" + "━"*40 + f"┛{C_RESET}\n")
+            time.sleep(1)
+            break
+        elif cmd in ['01', '1']: op_scan_entire_system(root)
+        elif cmd in ['02', '2']:
+            p = sector_select(root)
+            if p:
+                progress_tactical("SORTING DATA")
+                for f in os.listdir(p):
+                    f_p = os.path.join(p, f)
+                    if os.path.isfile(f_p):
+                        ext = os.path.splitext(f)[1].lower()
+                        for cat, exts in FILE_TYPES.items():
+                            if ext in exts:
+                                d = os.path.join(p, cat); os.makedirs(d, exist_ok=True)
+                                shutil.move(f_p, os.path.join(d, f))
+                input()
+        elif cmd in ['03', '3']:
+            p = sector_select(root)
+            if p:
+                fs = [f for f in os.listdir(p) if os.path.isfile(os.path.join(p, f))]
+                for i, f in enumerate(fs): print(f" {C_CYAN}{i:02d} {C_GREY}{f}{C_RESET}")
+                idx = input(f" {C_CYAN}VAPORIZE INDEX: {C_RESET}")
+                if idx.isdigit() and int(idx) < len(fs):
+                    progress_tactical("VAPORIZING NODE")
+                    os.remove(os.path.join(p, fs[int(idx)]))
+                input()
+        elif cmd in ['04', '4']:
+            q = input(f" {C_CYAN}TARGET KEYWORD: {C_RESET}").lower()
+            neural_anim("SEARCHING MATRIX")
+            for r, _, fs in os.walk(root):
+                for f in fs:
+                    if q in f.lower(): print(f" {C_CYAN}FOUND: {C_GREY}{f}{C_RESET}")
+            input()
+        elif cmd in ['05', '5']:
+            p = sector_select(root)
+            if p:
+                progress_tactical("ENCRYPTING")
+                for f in os.listdir(p):
+                    f_p = os.path.join(p, f)
+                    if not f.endswith(".stark"): os.rename(f_p, f_p + ".stark")
+                input()
+        elif cmd in ['06', '6']:
+            p = sector_select(root)
+            if p:
+                progress_tactical("DECRYPTING")
+                for f in os.listdir(p):
+                    f_p = os.path.join(p, f)
+                    if f.endswith(".stark"): os.rename(f_p, f_p.replace(".stark", ""))
+                input()
+        elif cmd in ['07', '7']:
+            p = sector_select(root)
+            if p:
+                px = input(f" {C_CYAN}NEW IDENTITY: {C_RESET}")
+                for i, f in enumerate(os.listdir(p)):
+                    ext = os.path.splitext(f)[1]
+                    os.rename(os.path.join(p, f), os.path.join(p, f"{px} {i:03d}{ext}"))
+                input()
+        elif cmd in ['08', '8']:
+            p = sector_select(root)
+            if p:
+                for f in os.listdir(p):
+                    if os.path.isfile(os.path.join(p, f)):
+                        s = os.path.getsize(os.path.join(p, f)) // 1024
+                        print(f" {C_CYAN}▚ {C_GREY}{f[:25]:<27} {C_CYAN}{s} KB{C_RESET}")
+                input()
+        elif cmd in ['09', '9']:
+            p = sector_select(root)
+            if p:
+                for f in os.listdir(p):
+                    h = hashlib.md5(f.encode()).hexdigest()[:8]
+                    print(f" {C_CYAN}[{h.upper()}] {C_GREY}{f}{C_RESET}")
+                input()
+        elif cmd == '10':
+            p = sector_select(root)
+            if p:
+                progress_tactical("CLONING")
+                shutil.copytree(p, p + " CLONE")
+                input()
+        elif cmd == '11':
+            p = sector_select(root)
+            if p:
+                for r, ds, _ in os.walk(p, topdown=False):
+                    for d in ds:
+                        path = os.path.join(r, d)
+                        if not os.listdir(path): os.rmdir(path)
+                input()
+        elif cmd == '12':
+            total, used, free = shutil.disk_usage(root)
+            jarvis_type(f"TOTAL: {total // (2**30)} GB | USED: {used // (2**30)} GB | FREE: {free // (2**30)} GB", C_CYAN)
+            input()
 
 if __name__ == "__main__":
     main()
+        
