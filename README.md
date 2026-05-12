@@ -49,4 +49,4 @@ A terminal-based intelligent file management system wrapped in a dark cyberpunk 
 
 ```bash
 # No external libraries required
-python AI_Files_Organizer.py
+python AI Files organizer.py
